@@ -6,7 +6,7 @@ import sqlite3
 app = Flask(__name__)
 
 
-@app.route('/advice', methods=['POST'])
+@app.route('/api/advice', methods=['POST'])
 def submit_advice():
     req = json.loads(request.data)
     app_key = req.get('app_key')
