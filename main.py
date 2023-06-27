@@ -2,6 +2,10 @@ from flask import Flask
 from flask import request
 import json
 import sqlite3
+import requests
+
+DING_URL = 'https://oapi.dingtalk.com/robot/send?access_token=' \
+           '77c63c50e879ba803480ae18bbc308dfa0ab948b68dffca474de4e44d3606fa1'
 
 app = Flask(__name__)
 
@@ -12,6 +16,16 @@ def submit_advice():
     app_key = req.get('app_key')
     title = req.get('title')
     content = req.get('content')
+    # 钉钉提醒
+    ding_data = {
+        "msgtype": "text",
+        "text": {
+            "content": f"appKey:{app_key}\n title:{title}\n content:{content}"
+        }
+    }
+    headers = {'Content-Type': 'application/json'}
+    requests.post(DING_URL, headers=headers, data=json.dumps(ding_data))
+    # 保存数据到db
     connect = sqlite3.connect('./db/advice.db')
     try:
         # 创建表格
@@ -33,3 +47,4 @@ def submit_advice():
 
 if __name__ == '__main__':
     app.run()
+
