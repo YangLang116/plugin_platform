@@ -25,8 +25,11 @@ def submit_advice():
         "msgtype": "markdown",
         "markdown": {
             "title": "IDEA Plugin",
-            "text": f"**APP_KEY**: {app_key}  \n  **OS**: {os}  \n  **VERSION**: {version}  \n  "
-                    f"**TITLE**: {title}  \n  **CONTENT**: {content}  \n  "
+            "text": f"**APP_KEY**: {app_key}  \n  "
+                    f"**OS**: {os}  \n  "
+                    f"**VERSION**: {version}  \n  "
+                    f"**TITLE**: {title}  \n  "
+                    f"**CONTENT**:  \n  "
                     "```java  \n  "
                     f"{content}  \n  "
                     "```"
