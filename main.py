@@ -15,6 +15,8 @@ app = Flask(__name__)
 def submit_advice():
     req = json.loads(request.data)
     os = req.get('os')
+    ide = req.get('ide')
+    build = req.get('build')
     title = req.get('title')
     content = req.get('content')
     version = req.get('version')
@@ -27,6 +29,8 @@ def submit_advice():
             "title": "IDEA Plugin",
             "text": f"**APP_KEY**: {app_key}  \n  "
                     f"**OS**: {os}  \n  "
+                    f"**IDE**: {ide}  \n  "
+                    f"**Build**: {build}  \n  "
                     f"**VERSION**: {version}  \n  "
                     f"**TITLE**: {title}  \n  "
                     f"**CONTENT**:  \n  "
@@ -44,14 +48,16 @@ def submit_advice():
         connect.execute("CREATE TABLE IF NOT EXISTS Advice ("
                         "ID INTEGER AUTO_INCREMENT PRIMARY KEY,"
                         "APP_KEY VARCHAR(10) NOT NULL,"
-                        "OS TEXT NOT NULL,"
-                        "VERSION TEXT NOT NULL,"
+                        "OS TEXT,"
+                        "IDE TEXT,"
+                        "BUILD TEXT,"
+                        "VERSION TEXT,"
                         "TITLE TEXT NOT NULL,"
                         "CONTENT TEXT NOT NULL);")
         # 更新数据
         connect.execute(
-            f"INSERT INTO Advice (APP_KEY,OS,VERSION,TITLE,CONTENT) "
-            f"VALUES ('{app_key}','{os}','{version}','{title}','{content}');"
+            f"INSERT INTO Advice (APP_KEY,OS,IDE,Build,VERSION,TITLE,CONTENT) "
+            f"VALUES ('{app_key}','{os}','{ide}','{build}','{version}','{title}','{content}');"
         )
         # 保存数据
         connect.commit()
