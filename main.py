@@ -1,71 +1,49 @@
 import json
-import sqlite3
 
 import requests
+import sentry_sdk
 from flask import Flask
 from flask import request
+from sentry_sdk import capture_message
 
-DING_URL = 'https://oapi.dingtalk.com/robot/send?access_token=' \
-           '77c63c50e879ba803480ae18bbc308dfa0ab948b68dffca474de4e44d3606fa1'
+from config import DING_URL, SENTRY_KEY
+
+sentry_sdk.init(
+    dsn=SENTRY_KEY,
+    traces_sample_rate=1.0,
+    profiles_sample_rate=0,
+)
 
 app = Flask(__name__)
 
 
 @app.route('/api/advice', methods=['POST'])
 def submit_advice():
-    req = json.loads(request.data)
-    os = req.get('os')
-    ide = req.get('ide')
-    build = req.get('build')
-    title = req.get('title')
-    content = req.get('content')
-    version = req.get('version')
-    app_key = req.get('app_key')
-
+    data = request.data.decode('utf-8')
+    params = json.loads(data)
     # 钉钉提醒
-    ding_data = {
+    requests.post(DING_URL, headers={'Content-Type': 'application/json'}, data=json.dumps({
         "msgtype": "markdown",
         "markdown": {
             "title": "IDEA Plugin",
-            "text": f"**APP_KEY**: {app_key}  \n  "
-                    f"**OS**: {os}  \n  "
-                    f"**IDE**: {ide}  \n  "
-                    f"**Build**: {build}  \n  "
-                    f"**VERSION**: {version}  \n  "
-                    f"**TITLE**: {title}  \n  "
+            "text": f"**APP_KEY**: {params.get('app_key')}  \n  "
+                    f"**OS**: {params.get('os')}  \n  "
+                    f"**IDE**: {params.get('ide')}  \n  "
+                    f"**Build**: {params.get('build')}  \n  "
+                    f"**VERSION**: {params.get('version')}  \n  "
+                    f"**TITLE**: {params.get('title')}  \n  "
                     f"**CONTENT**:  \n  "
                     "```java  \n  "
-                    f"{content}  \n  "
+                    f"{params.get('content')}  \n  "
                     "```"
         }
-    }
-    headers = {'Content-Type': 'application/json'}
-    requests.post(DING_URL, headers=headers, data=json.dumps(ding_data))
-    # 保存数据到db
-    connect = sqlite3.connect('./db/advice.db')
-    try:
-        # 创建表格
-        connect.execute("CREATE TABLE IF NOT EXISTS Advice ("
-                        "ID INTEGER AUTO_INCREMENT PRIMARY KEY,"
-                        "APP_KEY VARCHAR(10) NOT NULL,"
-                        "OS TEXT,"
-                        "IDE TEXT,"
-                        "BUILD TEXT,"
-                        "VERSION TEXT,"
-                        "TITLE TEXT NOT NULL,"
-                        "CONTENT TEXT NOT NULL);")
-        # 更新数据
-        connect.execute(
-            f"INSERT INTO Advice (APP_KEY,OS,IDE,Build,VERSION,TITLE,CONTENT) "
-            f"VALUES ('{app_key}','{os}','{ide}','{build}','{version}','{title}','{content}');"
-        )
-        # 保存数据
-        connect.commit()
-        return json.dumps({'code': 0, 'msg': 'ok'})
-    except Exception as r:
-        return json.dumps({'code': -1, 'msg': r})
-    finally:
-        connect.close()
+    }))
+    # 保存数据到Sentry
+    error_level = 'error'
+    if params.get('title') == 'error catch':
+        error_level = 'warning'
+    capture_message(data, level=error_level)
+    return json.dumps({'code': 0, 'msg': 'ok'})
 
 
 if __name__ == '__main__':
