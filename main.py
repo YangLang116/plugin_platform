@@ -39,10 +39,14 @@ def submit_advice():
         }
     }))
     # 保存数据到Sentry
-    error_level = 'error'
-    if params.get('title') == 'error catch':
-        error_level = 'warning'
-    capture_message(data, level=error_level)
+    capture_message(params.get('content'),
+                    user=params.get('app_key'),
+                    level=params.get('title'),
+                    tags={"os": params.get('os'),
+                          "ide": params.get('ide'),
+                          "build": params.get('build'),
+                          "version": params.get('version')}
+                    )
     return json.dumps({'code': 0, 'msg': 'ok'})
 
 
