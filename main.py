@@ -40,12 +40,12 @@ def submit_advice():
     }))
     # 保存数据到Sentry
     capture_message(params.get('content'),
-                    level=params.get('title'),
                     tags={
                         "app": params.get('app_key'),
                         "os": params.get('os'),
                         "ide": params.get('ide'),
                         "build": params.get('build'),
+                        "way": params.get('title'),
                         "version": params.get('version')
                     })
     return json.dumps({'code': 0, 'msg': 'ok'})
